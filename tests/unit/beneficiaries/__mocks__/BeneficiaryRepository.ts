@@ -64,4 +64,37 @@ export class MockBeneficiaryRepository extends BeneficiaryRepository {
 		);
 		return new Promise((resolve) => resolve(beneficiaries));
 	}
+
+	find(
+		criteria: Partial<{ id: string } & BeneficiaryData>,
+	): Promise<Beneficiary[]> {
+		const allBeneficiaries = Array.from(this.beneficiaries.entries()).map(
+			([_id, data]) => Beneficiary.create(data, data),
+		);
+		if (allBeneficiaries.length === 0) {
+			return new Promise((resolve) => resolve([]));
+		}
+
+		const filtered = allBeneficiaries.filter((beneficiary) => {
+			return Object.entries(criteria).every(([key, value]) => {
+				if (
+					key === "name" &&
+					typeof value === "string" &&
+					typeof beneficiary.name === "string"
+				) {
+					return beneficiary.name.toLowerCase().includes(value.toLowerCase());
+				}
+				if (value === undefined) return true;
+				if (
+					key === "birthDate" &&
+					beneficiary.birthDate instanceof Date &&
+					value instanceof Date
+				) {
+					return beneficiary.birthDate.getTime() === value.getTime();
+				}
+				return beneficiary[key as keyof Beneficiary] === value;
+			});
+		});
+		return new Promise((resolve) => resolve(filtered));
+	}
 }
