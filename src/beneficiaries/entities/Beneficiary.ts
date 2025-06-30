@@ -34,6 +34,19 @@ export class Beneficiary {
 		return new Beneficiary(data, props);
 	}
 
+	update(data: Partial<Pick<BeneficiaryData, "name" | "phone">>) {
+		if (data.name !== undefined) {
+			this.validateName(data.name);
+			this.name = data.name;
+		}
+		if (data.phone !== undefined) {
+			this.validatePhone(data.phone);
+			this.phone = data.phone;
+		}
+
+		this.touch();
+	}
+
 	private validate(data: BeneficiaryData, props?: BeneficiaryProps) {
 		const { name, phone, birthDate } = data;
 		this.validateProps({ name, phone, birthDate });
@@ -44,14 +57,13 @@ export class Beneficiary {
 		}
 	}
 
-	private validateProps({
-		name,
-		phone,
-		birthDate,
-	}: Pick<BeneficiaryData, "name" | "phone" | "birthDate">) {
+	private validateName(name: string) {
 		if (!name || name.trim().length === 0) {
 			throw new Error("Name is required.");
 		}
+	}
+
+	private validatePhone(phone: string) {
 		if (!phone || phone.trim().length === 0) {
 			throw new Error("Phone is required.");
 		}
@@ -60,6 +72,15 @@ export class Beneficiary {
 				"Phone number is invalid. It must contain 9 to 15 digits and only valid characters.",
 			);
 		}
+	}
+
+	private validateProps({
+		name,
+		phone,
+		birthDate,
+	}: Pick<BeneficiaryData, "name" | "phone" | "birthDate">) {
+		this.validateName(name);
+		this.validatePhone(phone);
 		this.validateDate(birthDate, "Birth date");
 	}
 
@@ -96,5 +117,9 @@ export class Beneficiary {
 		if (date > new Date()) {
 			throw new Error(`${fieldName} cannot be in the future.`);
 		}
+	}
+
+	private touch() {
+		this.updatedAt = new Date();
 	}
 }

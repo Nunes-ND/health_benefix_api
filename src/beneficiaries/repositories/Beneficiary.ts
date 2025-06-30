@@ -34,6 +34,18 @@ export class BeneficiaryRepository {
 		return this.mapRowToBeneficiary(result.rows[0]);
 	}
 
+	async findById(id: string): Promise<Beneficiary | null> {
+		const result = await pool.query(
+			"SELECT * FROM beneficiaries WHERE id = $1",
+			[id],
+		);
+		if (result.rowCount === 0) {
+			return null;
+		}
+
+		return this.mapRowToBeneficiary(result.rows[0]);
+	}
+
 	private mapRowToBeneficiary(row: {
 		name: string;
 		phone: string;
