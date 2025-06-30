@@ -45,4 +45,9 @@ export class MockBeneficiaryRepository extends BeneficiaryRepository {
 			resolve(findBeneficiary);
 		});
 	}
+
+	remove(beneficiary: Beneficiary): Promise<void> {
+		this.beneficiaries.delete(beneficiary.id);
+		return new Promise((resolve) => resolve());
+	}
 }
