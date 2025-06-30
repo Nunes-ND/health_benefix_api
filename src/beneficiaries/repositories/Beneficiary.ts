@@ -52,6 +52,13 @@ export class BeneficiaryRepository {
 		]);
 	}
 
+	async findAll(): Promise<Beneficiary[]> {
+		const result = await pool.query(
+			"SELECT * FROM beneficiaries ORDER BY name ASC",
+		);
+		return result.rows.map(this.mapRowToBeneficiary);
+	}
+
 	private mapRowToBeneficiary(row: {
 		name: string;
 		phone: string;
