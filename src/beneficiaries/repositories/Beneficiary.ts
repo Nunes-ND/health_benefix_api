@@ -1,5 +1,5 @@
 import { pool } from "@/database/postgres";
-import { Beneficiary } from "../entities/Beneficiary";
+import { Beneficiary, BeneficiaryData } from "../entities/Beneficiary";
 
 export class BeneficiaryRepository {
 	async exists(beneficiary: Beneficiary): Promise<boolean> {
@@ -56,6 +56,43 @@ export class BeneficiaryRepository {
 		const result = await pool.query(
 			"SELECT * FROM beneficiaries ORDER BY name ASC",
 		);
+		return result.rows.map(this.mapRowToBeneficiary);
+	}
+
+	async find(
+		criteria: Partial<{ id: string } & BeneficiaryData>,
+	): Promise<Beneficiary[]> {
+		const conditions: string[] = [];
+		const values: (string | Date)[] = [];
+		let paramIndex = 1;
+
+		for (const [key, value] of Object.entries(criteria)) {
+			if (value !== undefined) {
+				if (key === "name" && typeof value === "string") {
+					conditions.push(`name ILIKE $${paramIndex++}`);
+					values.push(`%${value}%`);
+				} else {
+					const dbKey = key.replace(
+						/[A-Z]/g,
+						(letter) => `_${letter.toLowerCase()}`,
+					);
+					conditions.push(`${dbKey} = $${paramIndex++}`);
+					values.push(value);
+				}
+			}
+		}
+
+		if (conditions.length === 0) {
+			return this.findAll();
+		}
+
+		const query = `
+      SELECT * FROM beneficiaries
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY name ASC;
+    `;
+
+		const result = await pool.query(query, values);
 		return result.rows.map(this.mapRowToBeneficiary);
 	}
 
