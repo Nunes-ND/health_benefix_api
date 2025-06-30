@@ -29,4 +29,20 @@ export class MockBeneficiaryRepository extends BeneficiaryRepository {
 		);
 		return new Promise((resolve) => resolve(savedBeneficiary));
 	}
+
+	findById(id: string): Promise<Beneficiary | null> {
+		const beneficiaryData = this.beneficiaries.get(id);
+		if (!beneficiaryData) {
+			return new Promise((resolve) => resolve(null));
+		}
+		const { name, phone, birthDate } = beneficiaryData;
+		const { createdAt, updatedAt } = beneficiaryData;
+		const findBeneficiary = Beneficiary.create(
+			{ name, phone, birthDate },
+			{ id, createdAt, updatedAt },
+		);
+		return new Promise((resolve) => {
+			resolve(findBeneficiary);
+		});
+	}
 }
