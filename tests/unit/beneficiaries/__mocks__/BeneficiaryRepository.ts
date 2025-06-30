@@ -50,4 +50,18 @@ export class MockBeneficiaryRepository extends BeneficiaryRepository {
 		this.beneficiaries.delete(beneficiary.id);
 		return new Promise((resolve) => resolve());
 	}
+
+	findAll(): Promise<Beneficiary[]> {
+		const beneficiaries = Array.from(this.beneficiaries.values()).map(
+			(beneficiaryData) => {
+				const { name, phone, birthDate } = beneficiaryData;
+				const { id, createdAt, updatedAt } = beneficiaryData;
+				return Beneficiary.create(
+					{ name, phone, birthDate },
+					{ id, createdAt, updatedAt },
+				);
+			},
+		);
+		return new Promise((resolve) => resolve(beneficiaries));
+	}
 }
