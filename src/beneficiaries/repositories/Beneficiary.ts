@@ -46,6 +46,12 @@ export class BeneficiaryRepository {
 		return this.mapRowToBeneficiary(result.rows[0]);
 	}
 
+	async remove(beneficiary: Beneficiary): Promise<void> {
+		await pool.query("DELETE FROM beneficiaries WHERE id = $1", [
+			beneficiary.id,
+		]);
+	}
+
 	private mapRowToBeneficiary(row: {
 		name: string;
 		phone: string;
