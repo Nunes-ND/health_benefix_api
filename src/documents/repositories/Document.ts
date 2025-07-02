@@ -61,6 +61,11 @@ export class DocumentRepository {
 		return this.mapRowToDocument(result.rows[0]);
 	}
 
+	async remove(document: Document): Promise<void> {
+		const query = "DELETE FROM documents WHERE id = $1";
+		await pool.query(query, [document.id]);
+	}
+
 	private mapRowToDocument(row: DocumentRow): Document {
 		return Document.create(
 			{
