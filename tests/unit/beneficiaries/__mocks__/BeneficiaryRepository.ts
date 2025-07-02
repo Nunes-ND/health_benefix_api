@@ -16,63 +16,42 @@ export class MockBeneficiaryRepository extends BeneficiaryRepository {
 				currentBeneficiary.birthDate.getTime() ===
 					beneficiary.birthDate.getTime(),
 		);
-		return new Promise((resolve) => resolve(alreadyExists));
+		return Promise.resolve(alreadyExists);
 	}
 
 	save(beneficiary: Beneficiary): Promise<Beneficiary> {
-		const { name, phone, birthDate } = beneficiary;
-		const { id, createdAt, updatedAt } = beneficiary;
-		this.beneficiaries.set(id, { ...beneficiary });
-		const savedBeneficiary = Beneficiary.create(
-			{ name, phone, birthDate },
-			{ id, createdAt, updatedAt },
-		);
-		return new Promise((resolve) => resolve(savedBeneficiary));
+		this.beneficiaries.set(beneficiary.id, { ...beneficiary });
+		return Promise.resolve(beneficiary);
 	}
 
 	findById(id: string): Promise<Beneficiary | null> {
 		const beneficiaryData = this.beneficiaries.get(id);
 		if (!beneficiaryData) {
-			return new Promise((resolve) => resolve(null));
+			return Promise.resolve(null);
 		}
-		const { name, phone, birthDate } = beneficiaryData;
-		const { createdAt, updatedAt } = beneficiaryData;
-		const findBeneficiary = Beneficiary.create(
-			{ name, phone, birthDate },
-			{ id, createdAt, updatedAt },
-		);
-		return new Promise((resolve) => {
-			resolve(findBeneficiary);
-		});
+		return Promise.resolve(this.mapDataToBeneficiary(beneficiaryData));
 	}
 
 	remove(beneficiary: Beneficiary): Promise<void> {
 		this.beneficiaries.delete(beneficiary.id);
-		return new Promise((resolve) => resolve());
+		return Promise.resolve();
 	}
 
 	findAll(): Promise<Beneficiary[]> {
 		const beneficiaries = Array.from(this.beneficiaries.values()).map(
-			(beneficiaryData) => {
-				const { name, phone, birthDate } = beneficiaryData;
-				const { id, createdAt, updatedAt } = beneficiaryData;
-				return Beneficiary.create(
-					{ name, phone, birthDate },
-					{ id, createdAt, updatedAt },
-				);
-			},
+			(beneficiaryData) => this.mapDataToBeneficiary(beneficiaryData),
 		);
-		return new Promise((resolve) => resolve(beneficiaries));
+		return Promise.resolve(beneficiaries);
 	}
 
 	find(
 		criteria: Partial<{ id: string } & BeneficiaryData>,
 	): Promise<Beneficiary[]> {
-		const allBeneficiaries = Array.from(this.beneficiaries.entries()).map(
-			([_id, data]) => Beneficiary.create(data, data),
+		const allBeneficiaries = Array.from(this.beneficiaries.values()).map(
+			(data) => this.mapDataToBeneficiary(data),
 		);
 		if (allBeneficiaries.length === 0) {
-			return new Promise((resolve) => resolve([]));
+			return Promise.resolve([]);
 		}
 
 		const filtered = allBeneficiaries.filter((beneficiary) => {
@@ -95,6 +74,19 @@ export class MockBeneficiaryRepository extends BeneficiaryRepository {
 				return beneficiary[key as keyof Beneficiary] === value;
 			});
 		});
-		return new Promise((resolve) => resolve(filtered));
+		return Promise.resolve(filtered);
+	}
+
+	private mapDataToBeneficiary(
+		data: BeneficiaryData & BeneficiaryProps,
+	): Beneficiary {
+		return Beneficiary.create(
+			{ name: data.name, phone: data.phone, birthDate: data.birthDate },
+			{
+				id: data.id,
+				createdAt: data.createdAt,
+				updatedAt: data.updatedAt,
+			},
+		);
 	}
 }
