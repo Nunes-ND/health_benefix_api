@@ -1,5 +1,5 @@
 import { pool } from "@/database/postgres";
-import { Document, DocumentCategory } from "../entities/Document";
+import { Document, DocumentCategory, DocumentData } from "../entities/Document";
 
 interface DocumentRow {
 	id: string;
@@ -69,6 +69,37 @@ export class DocumentRepository {
 	async findAll(): Promise<Document[]> {
 		const query = "SELECT * FROM documents ORDER BY created_at DESC";
 		const result = await pool.query<DocumentRow>(query);
+		return result.rows.map((row) => this.mapRowToDocument(row));
+	}
+
+	async find(
+		criteria: Partial<{ id: string } & DocumentData>,
+	): Promise<Document[]> {
+		if (Object.keys(criteria).length === 0) {
+			return this.findAll();
+		}
+
+		const queryParts: string[] = [];
+		const values: (string | DocumentCategory)[] = [];
+		let valueCount = 1;
+
+		if (criteria.id) {
+			queryParts.push(`id = $${valueCount++}`);
+			values.push(criteria.id);
+		}
+		if (criteria.documentType) {
+			queryParts.push(`document_type = $${valueCount++}`);
+			values.push(criteria.documentType);
+		}
+		if (criteria.description) {
+			queryParts.push(`description ILIKE $${valueCount++}`);
+			values.push(`%${criteria.description}%`);
+		}
+
+		const whereClause = queryParts.join(" AND ");
+		const query = `SELECT * FROM documents WHERE ${whereClause} ORDER BY created_at DESC`;
+
+		const result = await pool.query<DocumentRow>(query, values);
 		return result.rows.map((row) => this.mapRowToDocument(row));
 	}
 
