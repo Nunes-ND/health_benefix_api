@@ -30,4 +30,28 @@ export class MockDocumentRepository extends DocumentRepository {
 		);
 		return new Promise((resolve) => resolve(doc));
 	}
+
+	findById(id: string): Promise<Document | null> {
+		const docData = this.documents.get(id);
+		if (!docData) {
+			return Promise.resolve(null);
+		}
+		const doc = Document.create(
+			{ documentType: docData.documentType, description: docData.description },
+			{
+				id: docData.id,
+				createdAt: docData.createdAt,
+				updatedAt: docData.updatedAt,
+			},
+		);
+		return Promise.resolve(doc);
+	}
+
+	update(document: Document): Promise<Document> {
+		if (!this.documents.has(document.id)) {
+			throw new Error("Document not found in mock for update");
+		}
+		this.documents.set(document.id, { ...document });
+		return Promise.resolve(document);
+	}
 }
