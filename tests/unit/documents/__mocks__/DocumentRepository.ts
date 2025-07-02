@@ -62,4 +62,21 @@ export class MockDocumentRepository extends DocumentRepository {
 		this.documents.delete(document.id);
 		return Promise.resolve();
 	}
+
+	findAll(): Promise<Document[]> {
+		const allDocs = Array.from(this.documents.values()).map((docData) =>
+			Document.create(
+				{
+					documentType: docData.documentType,
+					description: docData.description,
+				},
+				{
+					id: docData.id,
+					createdAt: docData.createdAt,
+					updatedAt: docData.updatedAt,
+				},
+			),
+		);
+		return Promise.resolve(allDocs);
+	}
 }
