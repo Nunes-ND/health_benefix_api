@@ -66,6 +66,12 @@ export class DocumentRepository {
 		await pool.query(query, [document.id]);
 	}
 
+	async findAll(): Promise<Document[]> {
+		const query = "SELECT * FROM documents ORDER BY created_at DESC";
+		const result = await pool.query<DocumentRow>(query);
+		return result.rows.map((row) => this.mapRowToDocument(row));
+	}
+
 	private mapRowToDocument(row: DocumentRow): Document {
 		return Document.create(
 			{
