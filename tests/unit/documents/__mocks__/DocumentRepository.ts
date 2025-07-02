@@ -79,4 +79,42 @@ export class MockDocumentRepository extends DocumentRepository {
 		);
 		return Promise.resolve(allDocs);
 	}
+
+	find(criteria: Partial<{ id: string } & DocumentData>): Promise<Document[]> {
+		if (Object.keys(criteria).length === 0) {
+			return this.findAll();
+		}
+
+		const allDocs = Array.from(this.documents.values());
+
+		const filteredDocs = allDocs.filter((doc) => {
+			if (criteria.id && doc.id !== criteria.id) return false;
+			if (criteria.documentType && doc.documentType !== criteria.documentType)
+				return false;
+			if (
+				criteria.description &&
+				!doc.description
+					.toLowerCase()
+					.includes(criteria.description.toLowerCase())
+			)
+				return false;
+			return true;
+		});
+
+		const result = filteredDocs.map((docData) =>
+			Document.create(
+				{
+					documentType: docData.documentType,
+					description: docData.description,
+				},
+				{
+					id: docData.id,
+					createdAt: docData.createdAt,
+					updatedAt: docData.updatedAt,
+				},
+			),
+		);
+
+		return Promise.resolve(result);
+	}
 }
