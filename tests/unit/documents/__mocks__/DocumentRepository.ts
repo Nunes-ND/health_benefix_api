@@ -10,25 +10,16 @@ export class MockDocumentRepository extends DocumentRepository {
 
 	exists(document: Document): Promise<boolean> {
 		const alreadyExists = [...this.documents.values()].some(
-			(doc) => doc.description === document.description,
+			(doc) =>
+				doc.documentType === document.documentType &&
+				doc.description === document.description,
 		);
-		Array.from(this.documents.values()).some(
-			(currentDocument) =>
-				currentDocument.documentType === document.documentType &&
-				currentDocument.description === document.description,
-		);
-		return new Promise((resolve) => resolve(alreadyExists));
+		return Promise.resolve(alreadyExists);
 	}
 
 	save(document: Document): Promise<Document> {
-		const { id, createdAt, updatedAt } = document;
-		const { documentType, description } = document;
-		this.documents.set(id, { ...document });
-		const doc = Document.create(
-			{ documentType, description },
-			{ id, createdAt, updatedAt },
-		);
-		return new Promise((resolve) => resolve(doc));
+		this.documents.set(document.id, { ...document });
+		return Promise.resolve(document);
 	}
 
 	findById(id: string): Promise<Document | null> {
@@ -36,15 +27,7 @@ export class MockDocumentRepository extends DocumentRepository {
 		if (!docData) {
 			return Promise.resolve(null);
 		}
-		const doc = Document.create(
-			{ documentType: docData.documentType, description: docData.description },
-			{
-				id: docData.id,
-				createdAt: docData.createdAt,
-				updatedAt: docData.updatedAt,
-			},
-		);
-		return Promise.resolve(doc);
+		return Promise.resolve(this.mapDataToDocument(docData));
 	}
 
 	update(document: Document): Promise<Document> {
@@ -64,20 +47,11 @@ export class MockDocumentRepository extends DocumentRepository {
 	}
 
 	findAll(): Promise<Document[]> {
-		const allDocs = Array.from(this.documents.values()).map((docData) =>
-			Document.create(
-				{
-					documentType: docData.documentType,
-					description: docData.description,
-				},
-				{
-					id: docData.id,
-					createdAt: docData.createdAt,
-					updatedAt: docData.updatedAt,
-				},
+		return Promise.resolve(
+			Array.from(this.documents.values()).map((docData) =>
+				this.mapDataToDocument(docData),
 			),
 		);
-		return Promise.resolve(allDocs);
 	}
 
 	find(criteria: Partial<{ id: string } & DocumentData>): Promise<Document[]> {
@@ -87,34 +61,26 @@ export class MockDocumentRepository extends DocumentRepository {
 
 		const allDocs = Array.from(this.documents.values());
 
-		const filteredDocs = allDocs.filter((doc) => {
-			if (criteria.id && doc.id !== criteria.id) return false;
-			if (criteria.documentType && doc.documentType !== criteria.documentType)
-				return false;
-			if (
-				criteria.description &&
-				!doc.description
-					.toLowerCase()
-					.includes(criteria.description.toLowerCase())
-			)
-				return false;
-			return true;
-		});
-
-		const result = filteredDocs.map((docData) =>
-			Document.create(
-				{
-					documentType: docData.documentType,
-					description: docData.description,
-				},
-				{
-					id: docData.id,
-					createdAt: docData.createdAt,
-					updatedAt: docData.updatedAt,
-				},
-			),
+		const filteredDocs = allDocs.filter(
+			(doc) =>
+				(!criteria.id || doc.id === criteria.id) &&
+				(!criteria.documentType ||
+					doc.documentType === criteria.documentType) &&
+				(!criteria.description ||
+					doc.description
+						.toLowerCase()
+						.includes(criteria.description.toLowerCase())),
 		);
 
-		return Promise.resolve(result);
+		return Promise.resolve(
+			filteredDocs.map((docData) => this.mapDataToDocument(docData)),
+		);
+	}
+
+	private mapDataToDocument(data: DocumentData & DocumentProps): Document {
+		return Document.create(
+			{ documentType: data.documentType, description: data.description },
+			{ id: data.id, createdAt: data.createdAt, updatedAt: data.updatedAt },
+		);
 	}
 }
