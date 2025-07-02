@@ -54,4 +54,12 @@ export class MockDocumentRepository extends DocumentRepository {
 		this.documents.set(document.id, { ...document });
 		return Promise.resolve(document);
 	}
+
+	remove(document: Document): Promise<void> {
+		if (!this.documents.has(document.id)) {
+			throw new Error("Document not found in mock for remove");
+		}
+		this.documents.delete(document.id);
+		return Promise.resolve();
+	}
 }
