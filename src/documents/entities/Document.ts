@@ -38,6 +38,12 @@ export class Document {
 		return new Document(data, props);
 	}
 
+	updateDescription(description: string): void {
+		this.validateData({ description, documentType: this.documentType });
+		this.description = description;
+		this.touch();
+	}
+
 	private validate(data: DocumentData, props?: DocumentProps): void {
 		const { description, documentType } = data;
 		this.validateData({ description, documentType });

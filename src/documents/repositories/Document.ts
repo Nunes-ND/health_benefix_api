@@ -36,6 +36,31 @@ export class DocumentRepository {
 		return this.mapRowToDocument(result.rows[0]);
 	}
 
+	async findById(id: string): Promise<Document | null> {
+		const query = "SELECT * FROM documents WHERE id = $1 LIMIT 1";
+		const result = await pool.query<DocumentRow>(query, [id]);
+
+		if (result.rowCount === 0) {
+			return null;
+		}
+
+		return this.mapRowToDocument(result.rows[0]);
+	}
+
+	async update(document: Document): Promise<Document> {
+		const query = `
+      UPDATE documents
+      SET description = $1, updated_at = $2
+      WHERE id = $3
+      RETURNING *;
+    `;
+		const values = [document.description, document.updatedAt, document.id];
+
+		const result = await pool.query<DocumentRow>(query, values);
+
+		return this.mapRowToDocument(result.rows[0]);
+	}
+
 	private mapRowToDocument(row: DocumentRow): Document {
 		return Document.create(
 			{
