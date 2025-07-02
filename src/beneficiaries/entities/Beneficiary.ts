@@ -49,11 +49,11 @@ export class Beneficiary {
 
 	private validate(data: BeneficiaryData, props?: BeneficiaryProps) {
 		const { name, phone, birthDate } = data;
-		this.validateProps({ name, phone, birthDate });
+		this.validateData({ name, phone, birthDate });
 
 		if (props) {
 			const { id, createdAt, updatedAt } = props;
-			this.validateData({ id, createdAt, updatedAt });
+			this.validateProps({ id, createdAt, updatedAt });
 		}
 	}
 
@@ -74,7 +74,7 @@ export class Beneficiary {
 		}
 	}
 
-	private validateProps({
+	private validateData({
 		name,
 		phone,
 		birthDate,
@@ -84,7 +84,7 @@ export class Beneficiary {
 		this.validateDate(birthDate, "Birth date");
 	}
 
-	private validateData({
+	private validateProps({
 		id,
 		createdAt,
 		updatedAt,
